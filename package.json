@@ -23,6 +23,7 @@
     "express": "^4.17.1",
     "hashmap": "^2.3.0",
     "open-graph-scraper": "^3.6.2",
-    "pg": "^7.12.1"
+    "pg": "^7.12.1",
+    "socket.io": "^2.2.0"
   }
 }

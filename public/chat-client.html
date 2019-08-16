@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        strong {color:red;}
+    </style>
+</head>
+<body>
+    <h1>Chat Client <strong id="myid" class="red"></strong></h1>
+    <div id="status" class="red"></div>
+
+    <div id="list">
+
+    </div>
+    <div>
+        <input type="text" id="msg" value="hi~">
+        <button onclick="send()" id="btnSend">Send</button>
+    </div>
+<script
+    src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+    crossorigin="anonymous"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var square = 'square';
+    var joinedRoom = null;
+    var socket = io('http://localhost:3000?aaa=123');
+
+    socket.on("connect", function() {
+        console.log("connected!!");
+
+        socket.emit('join', square);
+        joinedRoom = square;
+
+        $('#status').text("Connected : " + joinedRoom);
+
+        socket.emit('rooms', function(rooms) {
+            console.log("rooms>>" + rooms);
+        });
+    });
+    socket.on("message", function(data) {
+        console.log("message>>", data);
+
+        let msg = data.msg;
+        if(msg && msg.startsWith("Welcome")) {
+            let myid = msg.substring(msg.lastIndexOf(' ') + 1);
+            $('#myid').text(myid);
+        }
+    });
+    socket.on("disconnect", function() {
+       console.log("disconnected!!");
+       $('#status').text("disconnected");
+    });
+
+    function send() {
+        let msg = $("#msg").val();
+        socket.emit('message', {room: joinedRoom, msg: msg}, function(ret) {
+            console.log("message.callback>>", ret);
+        });
+    }
+</script>
+</body>
+</html>
