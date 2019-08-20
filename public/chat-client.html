@@ -5,11 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        strong {color:red;}
     </style>
 </head>
 <body>
     <h1>Chat Client <strong id="myid" class="red"></strong></h1>
+    <div id="rooms"></div>
+    <div>
+        <input type="text" id="roomid" value="rooms1">
+        <button onclick="joinRoom()">join</button>
+    </div>
+
+    <hr>
     <div id="status" class="red"></div>
 
     <div id="list">
@@ -26,25 +32,26 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
     var square = 'square';
-    var joinedRoom = null;
+    var joinedRoom = square;
     var socket = io('http://localhost:3000?aaa=123');
 
     socket.on("connect", function() {
         console.log("connected!!");
 
-        socket.emit('join', square);
-        joinedRoom = square;
+        makeJoin(square);
 
         $('#status').text("Connected : " + joinedRoom);
 
-        socket.emit('rooms', function(rooms) {
-            console.log("rooms>>" + rooms);
-        });
+        displayRooms();
     });
     socket.on("message", function(data) {
         console.log("message>>", data);
 
         let msg = data.msg;
+
+            let $list = $('#list');
+            $list.append(`<div><strong>${msg}</strong></div>`);
+
         if(msg && msg.startsWith("Welcome")) {
             let myid = msg.substring(msg.lastIndexOf(' ') + 1);
             $('#myid').text(myid);
@@ -57,8 +64,35 @@
 
     function send() {
         let msg = $("#msg").val();
+        let $list = $('#list');
         socket.emit('message', {room: joinedRoom, msg: msg}, function(ret) {
             console.log("message.callback>>", ret);
+            $list.append(`<div>나 : ${msg}</div>`)
+        });
+    }
+
+    function joinRoom() {
+        let roomid = $('input#roomid').val();
+
+        if(!roomid) {
+            alert('Input the room-id to join!!');
+            return;
+        }
+        makeJoin(roomid);
+    }
+
+    function makeJoin(roomid) {
+        socket.emit('join', roomid, () => {
+            socket.emit('leave', joinedRoom);
+            joinedRoom = roomid;
+            displayRooms();
+        });
+    }
+
+    function displayRooms() {
+        socket.emit('rooms', function(rooms) {
+            console.log("rooms>>" + rooms);
+            $('#rooms').text(rooms);
         });
     }
 </script>

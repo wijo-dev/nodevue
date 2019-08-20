@@ -25,5 +25,8 @@
     "open-graph-scraper": "^3.6.2",
     "pg": "^7.12.1",
     "socket.io": "^2.2.0"
+  },
+  "devDependencies": {
+    "webpack-node-externals": "^1.7.2"
   }
 }

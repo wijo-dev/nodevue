@@ -47,9 +47,13 @@ io.sockets.on('connection', (socket, opt) => {
 
     util.log('connection>>', socket.id, socket.handshake.query);
 
-    socket.on('join', function(roomId, fn) {
+    socket.on('join', function(roomId,userid, fn) {
         socket.join(roomId, function() {
+            socket.userid = userid;
             util.log('Join>> ', roomId, Object.keys(socket.rooms));
+            if(fn) {
+                fn();
+            }
         });
     });
 
@@ -67,10 +71,13 @@ io.sockets.on('connection', (socket, opt) => {
         }
     });
 
+    // data: {room: 'roomid;, msg: `msg`}
     socket.on('message', (data, fn) => {
         util.log('message>> ', data.msg, Object.keys(socket.rooms));
-
-        fn(data.msg);
+        if(fn) {
+            fn(data.msg);
+        }
+        socket.broadcast.to(data.room).emit('message', {room: data.room, msg: data.msg});
     });
 
     socket.on('disconnecting', function(data) {
