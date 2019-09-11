@@ -1,6 +1,7 @@
 <template>
   <div class="movies">
     <h1>영화 목록</h1>
+    {{ }}
     <div v-for="movie in movies" class="movie" v-bind:key="movie.id">
       <img v-bind:src="movie.poster" class="poster">
       <div>
@@ -16,12 +17,14 @@ export default {
   created () {
     this.$http.get('/api/movies')
       .then((response) => {
+        console.log(response.data)
         this.movies = response.data
       })
   },
   data () {
     return {
-      movies: []
+      movies: [],
+      elastic: []
     }
   }
 }

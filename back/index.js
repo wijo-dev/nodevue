@@ -3,6 +3,12 @@ const app = express(),
       testJson = require('./test/test.json');
 const util = require('util');
 const movies = require('./utils/movies.json');
+var bodyParser = require('body-parser');
+const elastic = require('elasticsearch');
+const client = new elastic.Client({
+    host: '34.97.28.140:9200'
+});
+
 const multer = require('multer');
 var upload = multer({ dest: 'public'});
 
@@ -18,6 +24,7 @@ var upload = multer({ storage: storage});
 
 var fs = require('fs');
 
+app.use(express.json())
 app.use(express.static('public'));
 app.set('views', __dirname+'/views');
 app.set('view engine', 'ejs')
@@ -25,17 +32,41 @@ app.engine('html', require('ejs').renderFile);
 
 
 app.get('/', (req, res) => {
+    
     // res.send("Hello ?Node JS !! ");
     res.render('index', {name: '홍길동'});
 });
 
-app.get('/api/movies', (req, res) => {
+app.get('/api/elastic', (req, rest) => {
     // res.send("Hello ?Node JS !! ");
+    client.search({
+        index: 'board',
+        body: {
+            "sort": [
+                {
+                  "reg_date": {
+                    "order": "asc"
+                  }
+                }
+              ],
+              "query": {
+                "match_all": {}
+              }
+        }
+    }, function(err, res) {
+        console.log(res.hits);
+        rest.send(res.hits.hits);
+    });
+    console.log('파일 업로드1');
+    
+    // res.render('index', {name: '홍길동'});
+});
+
+app.get('/api/movies', (req, res) => {
     console.log('파일 업로드1');
     res.send(movies);
     // res.render('index', {name: '홍길동'});
 });
-
 
 app.post('/file', upload.single('upload'), (req, res) => {
     console.log('================================');
@@ -44,20 +75,19 @@ app.post('/file', upload.single('upload'), (req, res) => {
     var obj = {
             "uploaded": true,
             "url": "/bigbit.png"
-        // "resourceType": "Files",
-        // "currentFolder": {
-        //     "path": "/",
-        //     "url": "/ckfinder/userfiles/files/",
-        //     "acl": 255
-        // },
-        // "saved": 1,
-        // "date": "201406080924",
-        // "size": 1
     };
     console.log('ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ');
     console.log(JSON.stringify(obj));
     // console.log('file upload');
     res.json(obj);
+});
+
+app.post('/uploadBoard', (req, res) => {
+    // res.send("Hello ?Node JS !! ");
+    console.log(req.body.userId);
+    console.log(req.body.title);
+    console.log(req.body.data);
+    res.send("HEllO world!!");
 });
 
 app.get('/test/:email', (req, res) => {
